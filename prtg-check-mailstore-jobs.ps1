@@ -116,5 +116,5 @@ foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $tru
 <unit>Count</unit>
 <mode>absolute</mode>
 </result>
-<text>Successful jobs: $successfulcount  Jobs completed with errors: $completedWithErrors Jobs cancelled: $cancelled Jobs with errors: $errorcount</text>
+<text>Successful jobs: $successfulcount  Jobs completed with errors: $completedWithErrors Jobs cancelled: $cancelled Jobs Failed: $errorcount</text>
 </prtg>"
