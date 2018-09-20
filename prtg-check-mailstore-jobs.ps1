@@ -109,7 +109,7 @@ foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $tru
 <mode>absolute</mode>
 </result>
 <result>
-<channel>Jobs with errors</channel>
+<channel>Jobs Failed</channel>
 <value>$errorcount</value>
 <showChart>1</showChart>
 <showTable>1</showTable>
