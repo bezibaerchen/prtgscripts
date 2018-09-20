@@ -1,5 +1,7 @@
 ## 2018-09-20_BEZ Script to check Job Status in Mailstore
 
+## Please check GitHub repository for updates to that script: https://github.com/bezibaerchen/prtgscripts
+
 # Define credentials for mailstore server
 $user="<user>"
 $pass="<pass>"
