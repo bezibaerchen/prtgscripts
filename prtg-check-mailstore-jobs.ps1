@@ -24,6 +24,8 @@ $date_24h_ago=(get-date (get-date).AddDays(-1) -format s)
 # set counters to 0
 $errorcount=0
 $successfulcount=0
+$completedWithErrors=0
+$cancelled=0
 
 # get configured profiles from Mailstore serverSideExecution
 $return=Invoke-MSApiCall $msapiclient "GetProfiles" @{raw = "true"} 
@@ -31,8 +33,8 @@ $return=Invoke-MSApiCall $msapiclient "GetProfiles" @{raw = "true"}
 # Loop through profiles set to automatic execution
 foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $true}).id)
 {
-    # loop through jobs set to automatic with statusCode succeeded
-	$result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.statusCode -eq "succeeded"} | select statusCode
+    # loop through jobs set to automatic with result succeeded
+	$result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.result.result -eq "succeeded"}
     
 	# raise counter for successful jobs
     if($result) {
@@ -41,11 +43,36 @@ foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $tru
     
 }
 
+foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $true}).id)
+{
+    # loop through jobs set to automatic with result succeeded
+	$result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.result.result -eq "completedWithErrors"}
+    
+	# raise counter for successful jobs
+    if($result) {
+        $completedWithErrors=$completedWithErrors+1
+    }
+    
+}
+
+foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $true}).id)
+{
+    # loop through jobs set to automatic with result succeeded
+	$result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.result.result -eq "cancelled"}
+    
+	# raise counter for successful jobs
+    if($result) {
+        $cancelled=$cancelled+1
+    }
+    
+}
+
+
 # Loop through profiles set to automatic execution
 foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $true}).id)
 {
     # loop through jobs set to automatic with StatusCode not being succeeded
-    $result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.statusCode -ne "succeeded"} | select statusCode
+    $result=Invoke-MSApiCall $msapiclient "GetWorkerResults" @{fromIncluding = $date_24h_ago; toExcluding = $date; timeZoneID = "W. Europe Standard Time"; profileID=$id} | where {$_.result.result -eq "failed"}
 	
 	# raise counter for non-successful jobs
     if($result) {
@@ -66,6 +93,22 @@ foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $tru
 <mode>absolute</mode>
 </result>
 <result>
+<channel>Jobs completed with errors</channel>
+<value>$completedWithErrors</value>
+<showChart>1</showChart>
+<showTable>1</showTable>
+<unit>Count</unit>
+<mode>absolute</mode>
+</result>
+<result>
+<channel>Jobs cancelled</channel>
+<value>$cancelled</value>
+<showChart>1</showChart>
+<showTable>1</showTable>
+<unit>Count</unit>
+<mode>absolute</mode>
+</result>
+<result>
 <channel>Jobs with errors</channel>
 <value>$errorcount</value>
 <showChart>1</showChart>
@@ -73,5 +116,5 @@ foreach($id in ($return.result| where {$_.serverSideExecution.automatic -eq $tru
 <unit>Count</unit>
 <mode>absolute</mode>
 </result>
-<text>Number of successful jobs: $successfulcount   Number of jobs with errors: $errorcount</text>
+<text>Successful jobs: $successfulcount  Jobs completed with errors: $completedWithErrors Jobs cancelled: $cancelled Jobs with errors: $errorcount</text>
 </prtg>"
